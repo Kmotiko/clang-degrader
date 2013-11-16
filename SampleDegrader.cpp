@@ -55,6 +55,31 @@ void NullptrFixer::run(const clang::ast_matchers::MatchFinder::MatchResult &resu
 
 
 /**
+ * serialize Replacements
+ */
+void outputReplacementsYAML(const clang::tooling::Replacements &replacements){
+    llvm::outs() << "serealizing \n" ;
+
+    // create file path
+    llvm::SmallString<128> replacement_file = llvm::StringRef("/tmp/sample.yaml");
+
+    // fd stream
+    std::string errinfo;
+    llvm::raw_fd_ostream file_stream(
+            replacement_file.c_str(), 
+            errinfo, 
+            llvm::sys::fs::F_Binary);
+
+    llvm::yaml::Output yaml_out(file_stream);
+    for(std::set<clang::tooling::Replacement>::iterator it=replacements.begin(),
+            end=replacements.end(); it!=end; it++)
+        yaml_out << const_cast<clang::tooling::Replacement &>(*it);
+
+    return;
+}
+
+
+/**
  * main
  */
 int main(int argc, const char **argv) {
@@ -70,5 +95,10 @@ int main(int argc, const char **argv) {
     finder.addMatcher(matcher, &fixer);
 
     // run and save
-    return tool.runAndSave(clang::tooling::newFrontendActionFactory(&finder));
+    tool.run(clang::tooling::newFrontendActionFactory(&finder));
+    
+    // serialize
+    outputReplacementsYAML(tool.getReplacements());
+
+    return 0;
 }
