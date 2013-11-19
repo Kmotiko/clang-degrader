@@ -1,10 +1,10 @@
 set(LLVM_LINK_COMPONENTS support)
 
-add_clang_executable(sample-degrader
-    SampleDegrader.cpp
+add_clang_executable(clang-degrader
+    ClangDegrader.cpp
 )
 
-target_link_libraries(sample-degrader
+target_link_libraries(clang-degrader
     clangFormat 
     clangTooling 
     clangBasic 
@@ -12,5 +12,5 @@ target_link_libraries(sample-degrader
     clangRewriteFrontend
 )
 
-install(TARGETS sample-degrader
+install(TARGETS clang-degrader
     DESTINATION bin)
