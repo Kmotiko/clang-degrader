@@ -1,4 +1,4 @@
-void test(){
-    int *hoge = nullptr;
-    return;
+void test() {
+  int *hoge = nullptr;
+  return;
 }
