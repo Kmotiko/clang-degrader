@@ -26,11 +26,11 @@ LIBS=\
 
 SAMPLE_DIR = $(PROJECT_DIR)/sample
 
-MAIN_SRC = SampleDegrader.cpp
+MAIN_SRC = ClangDegrader.cpp
 MAIN_SRC_PATH = $(CORE_DIR)/$(MAIN_SRC)
 MAIN_OBJ = $(OBJ_DIR)/$(MAIN_SRC:.cpp=.o)
 
-TOOL = $(BIN_DIR)/sample-degrader
+TOOL = $(BIN_DIR)/clang-degrader
 CONFIG = llvm-config
 LFLAGS = --ldflags --libs
 CFLAGS = --cxxflags
