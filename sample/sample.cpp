@@ -1,4 +1,4 @@
-int main(){
-    int *hoge = nullptr;
-    return 0;
+int main() {
+  int *hoge = nullptr;
+  return 0;
 }

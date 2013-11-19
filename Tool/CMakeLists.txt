@@ -1,20 +1,20 @@
 set(LLVM_LINK_COMPONENTS support)
 
-set(SampleDegraderSources
-    SampleDegrader.cpp
+set(ClangDegraderSources
+    ClangDegrader.cpp
     )
 
 file(GLOB_RECURSE DegraderBaseSources  "../DegraderBase/*.cpp")
-list(APPEND SampleDegraderSources ${DegraderBaseSources})
+list(APPEND ClangDegraderSources ${DegraderBaseSources})
 
 file(GLOB_RECURSE NullptrDegraderSources "../NullptrDegrade/*.cpp")
-list(APPEND SampleDegraderSources ${NullptrDegraderSources})
+list(APPEND ClangDegraderSources ${NullptrDegraderSources})
 
-add_clang_executable(sample-tuyaml
-    ${SampleDegraderSources}
+add_clang_executable(clang-degrader
+    ${ClangDegraderSources}
 )
 
-target_link_libraries(sample-tuyaml
+target_link_libraries(clang-degrader
     clangFormat 
     clangEdit 
     clangTooling 
@@ -24,5 +24,5 @@ target_link_libraries(sample-tuyaml
     clangRewriteFrontend
 )
 
-install(TARGETS sample-tuyaml
+install(TARGETS clang-degrader
     DESTINATION bin)
