@@ -9,12 +9,45 @@
 #include "clang/Tooling/ReplacementsYaml.h"
 #include "clang/Tooling/Refactoring.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Program.h"
 #include "llvm/Support/system_error.h"
 
 #include "../NullptrDegrade/NullptrDegrader.hpp"
+
+
+static llvm::cl::OptionCategory DegraderCategory("Degrader-Sample Category"); 
+
+static llvm::cl::list<std::string> SourcePaths(
+        llvm::cl::Positional, 
+        llvm::cl::desc("<source 0> [ ... <sources N>]"),
+        llvm::cl::OneOrMore,
+        llvm::cl::cat(DegraderCategory)
+        );
+
+static llvm::cl::opt<std::string> OutputDir(
+        "dir",
+        llvm::cl::desc("specify the output serealized file directory."),
+        llvm::cl::value_desc("dirname"),
+        llvm::cl::init("-"),
+        llvm::cl::cat(DegraderCategory)
+        );
+
+static llvm::cl::opt<unsigned> StartLine(
+        "start-line",
+        llvm::cl::desc("secify the start line"),
+        llvm::cl::init(0),
+        llvm::cl::cat(DegraderCategory)
+        );
+
+static llvm::cl::opt<unsigned> EndLine(
+        "end-line",
+        llvm::cl::desc("secify the end line"),
+        llvm::cl::init(0),
+        llvm::cl::cat(DegraderCategory)
+        );
 
 
 /**
@@ -25,7 +58,6 @@ void outputReplacementsYAML(const clang::tooling::TranslationUnitReplacements &r
 
     // create file path
     llvm::SmallString<128> replacement_file = llvm::StringRef(replacements.MainSourceFile + ".yaml");
-    llvm::outs() << replacement_file << "\n";
     
     if(replacements.Replacements.size() == 0)
         return;
@@ -45,14 +77,39 @@ void outputReplacementsYAML(const clang::tooling::TranslationUnitReplacements &r
 
 
 int main(int argc, const char **argv) {
+    // get options and set hidden to pre-defined options
+    llvm::StringMap<llvm::cl::Option*> Options;
+    llvm::cl::getRegisteredOptions(Options); 
+    for (llvm::StringMap<llvm::cl::Option *>::iterator I = Options.begin(),
+            E = Options.end(); I != E; ++I) {
+        if(I->first() == "help" || I->first() == "help-hidden" || I->first() == "version")
+            continue;
+        if(I->second->Category->getName() != DegraderCategory.getName())
+            I->second->setHiddenFlag(llvm::cl::ReallyHidden);
+    }
 
-    // parse command line
-    clang::tooling::CommonOptionsParser opt_parser(argc , argv);
+    // create compilation database
+    llvm::OwningPtr<clang::tooling::CompilationDatabase> compilations(
+            clang::tooling::FixedCompilationDatabase::loadFromCommandLine(argc, argv));   
+
+    // re-create compilationdatabase
+    if(!compilations){
+        std::string optionstrs[] = {"-std=c++11"};
+        compilations.reset(new clang::tooling::FixedCompilationDatabase(".", optionstrs));
+    }
+
+    // parse commandline options
+    llvm::cl::ParseCommandLineOptions(argc, argv);
+
+    if(SourcePaths.size() > 1 &&
+            (StartLine!=0 || EndLine!=0)){
+        llvm::errs() << "line option can only be used with one input file\n";
+        return 1;
+    }
 
     // create tool handler
-    NullptrDegrader nullptr_degrader;
-    nullptr_degrader.exec(opt_parser.getCompilations(), 
-            opt_parser.getSourcePathList());
+    NullptrDegrader nullptr_degrader(StartLine, EndLine);
+    nullptr_degrader.exec(*compilations, SourcePaths);
 
     // serealize
     std::map<std::string, clang::tooling::TranslationUnitReplacements> tu_replacements_map = 

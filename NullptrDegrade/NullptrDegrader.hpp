@@ -25,10 +25,15 @@ const char NullptrExpr[] = "nullptr_expr";
  */
 class NullptrDegrader : public DegraderBase{
     public:
-        NullptrDegrader(){}
+        NullptrDegrader(unsigned start_line=0, unsigned end_line=0)
+            :StartLine(start_line), EndLine(end_line){}
         ~NullptrDegrader(){}
         virtual bool exec(clang::tooling::CompilationDatabase &compilations,
                           std::vector<std::string> sources);
+
+    private:
+        unsigned StartLine; // StartLine of translate
+        unsigned EndLine;   // EndLien of translate
 };
 
 
@@ -38,11 +43,14 @@ class NullptrDegrader : public DegraderBase{
  */
 class NullptrFixer : public clang::ast_matchers::MatchFinder::MatchCallback {
     public:
-        NullptrFixer(NullptrDegrader &owner) : Degrader(owner){} 
+        NullptrFixer(NullptrDegrader &degrader, unsigned start_line=0, unsigned end_line=0) 
+            : Degrader(degrader), StartLine(start_line), EndLine(end_line){}
         virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &result);
 
     private:
         NullptrDegrader &Degrader;
+        unsigned StartLine;
+        unsigned EndLine;
 };
 
 #endif

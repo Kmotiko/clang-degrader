@@ -63,4 +63,4 @@ clean:
 	rm -rf $(MAIN_OBJ) $(NULLPTR_OBJ) $(BASE_OBJ) $(TOOL)
 
 run:
-	$(TOOL) ./sample/sample.cpp -- -std=c++11
+	$(TOOL) -start-line=3 -end-line=5 ./sample/sample.cpp
